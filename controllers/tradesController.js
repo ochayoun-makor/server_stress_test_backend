@@ -1,5 +1,5 @@
 const axios = require('axios')
-const { calcTradeTime } = require('../scripts/singleTrade')
+const { calcTradeTime } = require('./singleTrade')
 
 const tradesController = async (ws, reqData) => {
   // let types = 'MKT'
@@ -40,17 +40,18 @@ const tradesController = async (ws, reqData) => {
         const productsRes = await axios.get('https://sb20.rest-api.enigma-securities.io/product')
 
         const { data: products } = productsRes
-        products.slice(1, 3).map((product) => {
-          console.log(product)
-          const tradeTime = calcTradeTime(token, types, sides, product.product_id, product.min_quantity)
-          console.log(tradeTime)
-        })
+        for (const product of products.slice(1,3)) {
+          const tradeTime = await calcTradeTime(token, types, sides, product.product_id, product.min_quantity)
+          console.log(tradeTime ,"TRADE TIME")
+        }
+  
 
         // } else {
         //   const types = ['MKT']
         //   const sides = ['BUY']
         // }
       } catch (error) {
+        console.log(error.message)
         throw new Error('data not found')
       }
     }
