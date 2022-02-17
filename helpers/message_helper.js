@@ -1,21 +1,18 @@
-const {timeRandom} = require("../scripts/random")
-//const { get_order_book } = require('../helpers/handle_ob_generator_message')
+const { tradesController } = require('../controllers/tradesController')
 const handle_message = async (ws, message) => {
   try {
-    const data = JSON.parse(message)
-    console.log("data",data.type)
-    switch (data.type) {
+    const req = JSON.parse(message)
+    switch (req.type) {
       case 'getData':
-        console.log('i am here', data.data)
-        timeRandom(ws)
+        tradesController(ws, req.filters)
         break
-     
+
       default:
-        console.log(data.type)
+        // console.log(req.type)
         throw new Error('Invalid message type')
     }
   } catch (e) {
-    console.log(e)
+    // console.log(e)
     ws.send(
       JSON.stringify({
         error: true,
@@ -28,3 +25,12 @@ const handle_message = async (ws, message) => {
 module.exports = {
   handle_message,
 }
+
+// {
+//   type: "getData",
+//   filters: {
+//     type: 'MKT',
+//     side: "BUY",
+//     product_id: 2
+//   }
+// }
