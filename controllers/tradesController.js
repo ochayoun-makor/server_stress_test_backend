@@ -56,7 +56,9 @@ const tradesController = async (ws, reqData) => {
       }
     }
   } catch (error) {
-    // ws.send({})
+    console.log(error.message);
+
+    ws.send(JSON.stringify(error));
   }
 }
 tradesController('test')

@@ -1,19 +1,19 @@
-const WebSocket = require('ws')
-require('dotenv').config()
-const massage_helper = require('../helpers/message_helper')
+const WebSocket = require('ws');
+require('dotenv').config();
+const massage_helper = require('../helpers/message_helper');
 //const logger = Logger.create('src/services/ws_service.js')
-const wss = new WebSocket.Server({ port: process.env.WS_PORT })
-const get_wss_of_ws_service = () => wss
+const wss = new WebSocket.Server({ port: process.env.WS_PORT });
+const get_wss_of_ws_service = () => wss;
 const ws_connection = async () => {
   try {
-    console.log(`Creating WS server on port ${process.env.WS_PORT}`)
+    console.log(`Creating WS server on port ${process.env.WS_PORT}`);
     wss.on('connection', async (ws, req) => {
-      console.log('1 connected')
+      console.log('1 connected');
       ws.on('message', (message) => {
-        massage_helper.handle_message(ws, message)
-      })
-      ws.on('close', () => {})
-    })
+        massage_helper.handle_message(ws, message);
+      });
+      ws.on('close', () => {});
+    });
     // wss.on('close', () => clearInterval(interval))
     // const interval = setInterval(() => {
     //   wss.clients.forEach((ws) => {
@@ -26,17 +26,17 @@ const ws_connection = async () => {
     //   })
     // }, 30000)
     wss.on('close', () => {
-      console.log('socket closed')
-    })
+      console.log('socket closed');
+    });
     wss.on('error', (err) => {
-      console.log('err', err)
-    })
+      console.log('err', err);
+    });
   } catch (error) {
-    console.log('error', error)
+    console.log('error', error);
   }
-}
+};
 
 module.exports = {
   ws_connection,
   get_wss_of_ws_service,
-}
+};
