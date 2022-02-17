@@ -3,7 +3,7 @@ const handle_message = async (ws, message) => {
   try {
     const req = JSON.parse(message)
     switch (req.type) {
-      case 'getData':
+      case 'get_data':
         tradesController(ws, req.filters)
         break
 

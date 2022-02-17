@@ -25,6 +25,7 @@ then
             --form "product_id=$product_id" \
             --form "quantity=$qty")
           price=$(echo $quote | jq -r ".price")
+          
 curl -s --location --request POST 'https://sb20.rest-api.enigma-securities.io/trade' \
            --header "Authorization: Bearer $token" \
            --form "type=$type" \

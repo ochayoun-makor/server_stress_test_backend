@@ -1,0 +1,2 @@
+0.340
+controllers/singleTradeScript.sh: line 27: jq: command not found

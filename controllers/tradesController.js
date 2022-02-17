@@ -29,18 +29,17 @@ const tradesController = async (ws, reqData) => {
     //   sides = reqData.filters.side
     // }
 
-    const types = reqData?.filters.type ? reqData.filters.type : 'MKT';
-    const sides = reqData?.filters.side ? reqData.filters.side : 'BUY';
+    const types = reqData?.filters.type ? reqData.filters.type : ['MKT', 'FOK', 'RFQ'];
+    const sides = reqData?.filters.side ? reqData.filters.side : ['BUY', 'SELL'];
     // console.log(types, 'TUPES', sides, 'SIDES')
 
-    if (reqData?.filters.product_id) {
-      // bash single proudct
-    } else {
-      try {
-        const productsRes = await axios.get('https://sb20.rest-api.enigma-securities.io/product');
-        const { data: products } = productsRes;
-        for (const product of products.slice(1, 3)) {
-          const { product_id, min_quantity } = product;
+    try {
+      const productsRes = await axios.get('https://sb20.rest-api.enigma-securities.io/product');
+      const { data: products } = productsRes;
+      if (reqData?.filters.product_id) {
+        let filteredProduct = products.filter((product) => (product.product_id = reqData?.filters.product_id))[0];
+        const { product_id, min_quantity } = filteredProduct;
+        if (typeof types === 'string' && typeof sides === 'string') {
           const tradeTime = await calcTradeTime(token, types, sides, product_id, min_quantity);
           const data_to_return = {
             type: 'trade',
@@ -53,16 +52,130 @@ const tradesController = async (ws, reqData) => {
             },
           };
           ws.send(JSON.stringify(data_to_return));
+        } else if (typeof types === 'string') {
+          for (const side of sides) {
+            const tradeTime = await calcTradeTime(token, types, side, product_id, min_quantity);
+            const data_to_return = {
+              type: 'trade',
+              data: {
+                type: types,
+                side,
+                product_id,
+                quantity: min_quantity,
+                tradeTime,
+              },
+            };
+            ws.send(JSON.stringify(data_to_return));
+          }
+        } else if (typeof sides === 'string') {
+          for (const type of types) {
+            const tradeTime = await calcTradeTime(token, type, sides, product_id, min_quantity);
+            const data_to_return = {
+              type: 'trade',
+              data: {
+                type,
+                side: sides,
+                product_id,
+                quantity: min_quantity,
+                tradeTime,
+              },
+            };
+            ws.send(JSON.stringify(data_to_return));
+          }
+        } else {
+          for (const type of types) {
+            for (const side of sides) {
+              const tradeTime = await calcTradeTime(token, type, side, product_id, min_quantity);
+              const data_to_return = {
+                type: 'trade',
+                data: {
+                  type,
+                  side,
+                  product_id,
+                  quantity: min_quantity,
+                  tradeTime,
+                },
+              };
+              ws.send(JSON.stringify(data_to_return));
+            }
+          }
         }
+      } else {
+        for (const product of products) {
+          const { product_id, min_quantity } = product;
 
-        // } else {
-        //   const types = ['MKT']
-        //   const sides = ['BUY']
-        // }
-      } catch (error) {
-        console.log(error.message);
-        throw new Error('data not found');
+          if (typeof types === 'string' && typeof sides === 'string') {
+            const tradeTime = await calcTradeTime(token, types, sides, product_id, min_quantity);
+            const data_to_return = {
+              type: 'trade',
+              data: {
+                type: types,
+                side: sides,
+                product_id,
+                quantity: min_quantity,
+                tradeTime,
+              },
+            };
+            ws.send(JSON.stringify(data_to_return));
+          } else if (typeof types === 'string') {
+            for (const side of sides) {
+              const tradeTime = await calcTradeTime(token, types, side, product_id, min_quantity);
+              const data_to_return = {
+                type: 'trade',
+                data: {
+                  type: types,
+                  side,
+                  product_id,
+                  quantity: min_quantity,
+                  tradeTime,
+                },
+              };
+              ws.send(JSON.stringify(data_to_return));
+            }
+          } else if (typeof sides === 'string') {
+            for (const type of types) {
+              const tradeTime = await calcTradeTime(token, type, sides, product_id, min_quantity);
+              const data_to_return = {
+                type: 'trade',
+                data: {
+                  type,
+                  side: sides,
+                  product_id,
+                  quantity: min_quantity,
+                  tradeTime,
+                },
+              };
+              ws.send(JSON.stringify(data_to_return));
+            }
+          } else {
+            for (const type of types) {
+              for (const side of sides) {
+                console.log(type, side);
+                const tradeTime = await calcTradeTime(token, type, side, product_id, min_quantity);
+                const data_to_return = {
+                  type: 'trade',
+                  data: {
+                    type,
+                    side,
+                    product_id,
+                    quantity: min_quantity,
+                    tradeTime,
+                  },
+                };
+                ws.send(JSON.stringify(data_to_return));
+              }
+            }
+          }
+        }
       }
+
+      // } else {
+      //   const types = ['MKT']
+      //   const sides = ['BUY']
+      // }
+    } catch (error) {
+      console.log(error.message);
+      throw new Error('data not found');
     }
   } catch (error) {
     // ws.send({})
