@@ -1,9 +1,14 @@
-TIMEFORMAT=%R
+TIMEFORMAT=%R  
+
+
 token=$1
 type=$2
 side=$3
 product_id=$4
 quantity=$5
+
+
+
 if [ $type = "MKT" ]
 then
 { time result=$(curl -s --location --request POST 'https://sb20.rest-api.enigma-securities.io/trade' \
