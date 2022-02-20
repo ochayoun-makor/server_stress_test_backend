@@ -14,17 +14,20 @@ const ws_connection = async () => {
       })
       ws.on('close', () => {})
     })
-    wss.on('close', () => clearInterval(interval))
-    const interval = setInterval(() => {
-      wss.clients.forEach((ws) => {
-        if (ws.isAlive === false) {
-          return ws.close()
-        }
+    // wss.on('close', () => clearInterval(interval))
+    // const interval = setInterval(() => {
+    //   wss.clients.forEach((ws) => {
+    //     if (ws.isAlive === false) {
+    //       return ws.close()
+    //     }
 
-        ws.isAlive = false
-        ws.ping()
-      })
-    }, 30000)
+    //     ws.isAlive = false
+    //     ws.ping()
+    //   })
+    // }, 30000)
+    wss.on('close', () => {
+      console.log('socket closed')
+    })
     wss.on('error', (err) => {
       console.log('err', err)
     })
@@ -33,5 +36,7 @@ const ws_connection = async () => {
   }
 }
 
-exports.ws_connection = ws_connection
-exports.get_wss_of_ws_service = get_wss_of_ws_service
+module.exports = {
+  ws_connection,
+  get_wss_of_ws_service,
+}
