@@ -2,8 +2,8 @@
 const axios = require('axios')
 const { Worker } = require('worker_threads')
 const path = require('path')
-
-const worker = new Worker(path.resolve('controllers/tradesController.js'))
+var workers = []
+let globalWorker = {}
 
 const handle_message = async (ws, message) => {
   try {
@@ -26,42 +26,53 @@ const handle_message = async (ws, message) => {
     const req = JSON.parse(message)
     switch (req.type) {
       case 'get_data': // regular
-        if (req.power) {
+        if (req.power === true) {
+          globalWorker = new Worker(path.resolve('controllers/tradesController.js'))
           const regular_data = {
             type: req.type,
-            ws,
             token,
             products,
             filters: req.filters,
           }
-          worker.postMessage(JSON.stringify(regular_data))
-          worker.on('message', (data) => {
+          globalWorker.postMessage(JSON.stringify(regular_data))
+          
+          globalWorker.on('message', (data) => {
             ws.send(data)
           })
-        } else {
-          worker.terminate()
-          console.log('worker ended')
+        } else if (req.power === false) {
+          if (Object.entries(globalWorker).length) {
+            globalWorker.terminate()
+            console.log('global worker terminated')
+          }
         }
         break
       case 'stress':
-        if (req.power) {
+        if (req.power === true) {
           const stressed_data = {
             type: req.type,
-            ws,
             token,
             products,
             filters: req.filters,
           }
-          worker.postMessage(JSON.stringify(stressed_data))
-          worker.on('message', (data) => {
-            ws.send(data)
-          })
-        } else {
-          worker.terminate()
-          console.log('worker ended')
+
+          for (let i = 0; i < req.threads; i++) {
+            const worker = new Worker(path.resolve('controllers/tradesController.js'))
+            worker.postMessage(JSON.stringify(stressed_data))
+            worker.on('message', (data) => {
+              const newData = { ...JSON.parse(data), thread: i }
+              ws.send(JSON.stringify(newData))
+            })
+            workers.push(worker)
+          }
+        } else if (req.power === false) {
+          if (workers.length) {
+            workers.forEach((worker) => {
+              worker.terminate()
+              console.log('worker killed')
+            })
+          }
         }
         break
-
       case 'products':
         ws.send(JSON.stringify({ type: 'products', data: products }))
         break

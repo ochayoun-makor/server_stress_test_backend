@@ -1,135 +1,54 @@
 const { calcTradeTime } = require('./singleTrade')
 const { parentPort } = require('worker_threads')
+const { v4: uuidv4 } = require('uuid')
 
-const tradesController = async (ws, token, products, filters) => {
+const tradesController = async (token, products, filters) => {
   try {
-    const types = filters?.type ? filters.type : ['MKT', 'FOK', 'RFQ']
-    const sides = filters?.side ? filters.side : ['BUY', 'SELL']
+    const types = filters?.types ? filters.types : ['MKT', 'FOK', 'RFQ']
+    const sides = filters?.sides ? filters.sides : ['BUY', 'SELL']
 
     try {
-      if (filters?.product_id) {
-        let filteredProduct = products.filter((product) => (product.product_id = filters?.product_id))[0]
-        const { product_id, min_quantity, product_name } = filteredProduct
-        if (typeof types === 'string' && typeof sides === 'string') {
-          const tradeTime = await calcTradeTime(token, types, sides, product_id, min_quantity)
-          const data_to_return = {
-            type: 'trade',
-            data: {
-              type: types, // EX. -> 'FOK'
-              side: sides, // EX. -> 'BUY'
-              product_id,
-              product_name,
-              quantity: min_quantity,
-              tradeTime,
-            },
-          }
-          ws.send(JSON.stringify(data_to_return))
-        } else if (typeof types === 'string') {
+      if (filters?.products) {
+        s
+        let filteredProduct = products.filter((product) => filters.products.includes(product.product_name))
+        const { product_id, min_quantity, max_quantity, product_name } = filteredProduct
+
+        const separator = (max_quantity - min_quantity) / 5.0
+        // creating array of quantities between max and min
+        const quantities = [min_quantity, separator + min_quantity, separator * 2 + min_quantity, separator * 3 + min_quantity, max_quantity]
+
+        console.log('trade created ! :)')
+        for (const type of types) {
           for (const side of sides) {
-            const tradeTime = await calcTradeTime(token, types, side, product_id, min_quantity)
-            const data_to_return = {
-              type: 'trade',
-              data: {
-                type: types, // EX. -> 'FOK'
-                side: sides, // EX. -> 'BUY'
-                product_id,
-                product_name,
-                quantity: min_quantity,
-                tradeTime,
-              },
-            }
-            ws.send(JSON.stringify(data_to_return))
-          }
-        } else if (typeof sides === 'string') {
-          for (const type of types) {
-            const tradeTime = await calcTradeTime(token, type, sides, product_id, min_quantity)
-            const data_to_return = {
-              type: 'trade',
-              data: {
-                type: types, // EX. -> 'FOK'
-                side: sides, // EX. -> 'BUY'
-                product_id,
-                product_name,
-                quantity: min_quantity,
-                tradeTime,
-              },
-            }
-            ws.send(JSON.stringify(data_to_return))
-          }
-        } else {
-          for (const type of types) {
-            for (const side of sides) {
-              const tradeTime = await calcTradeTime(token, type, side, product_id, min_quantity)
+            for (const quantity of quantities) {
+              const tradeTime = await calcTradeTime(token, type, side, product_id, quantity)
               const data_to_return = {
                 type: 'trade',
                 data: {
-                  type: types, // EX. -> 'FOK'
-                  side: sides, // EX. -> 'BUY'
+                  type, // EX. -> 'FOK'
+                  side, // EX. -> 'BUY'
                   product_id,
                   product_name,
-                  quantity: min_quantity,
+                  quantity,
                   tradeTime,
+                  id: uuidv4(),
                 },
               }
-              ws.send(JSON.stringify(data_to_return))
+              parentPort.postMessage(JSON.stringify(data_to_return))
             }
           }
         }
       } else {
         for (const product of products) {
           console.log('trade created ! :)')
-          const { product_id, min_quantity, product_name } = product
-
-          if (typeof types === 'string' && typeof sides === 'string') {
-            const tradeTime = await calcTradeTime(token, types, sides, product_id, min_quantity)
-            const data_to_return = {
-              type: 'trade',
-              data: {
-                type: types, // EX. -> 'FOK'
-                side: sides, // EX. -> 'BUY'
-                product_id,
-                product_name,
-                quantity: min_quantity,
-                tradeTime,
-              },
-            }
-            ws.send(JSON.stringify(data_to_return))
-          } else if (typeof types === 'string') {
+          const { product_id, min_quantity, max_quantity, product_name } = product
+          const separator = (max_quantity - min_quantity) / 5.0
+          // creating array of quantities between max and min
+          const quantities = [min_quantity, separator + min_quantity, separator * 2 + min_quantity, separator * 3 + min_quantity, max_quantity]
+          for (const type of types) {
             for (const side of sides) {
-              const tradeTime = await calcTradeTime(token, types, side, product_id, min_quantity)
-              const data_to_return = {
-                type: 'trade',
-                data: {
-                  type: types, // EX. -> 'FOK'
-                  side: sides, // EX. -> 'BUY'
-                  product_id,
-                  product_name,
-                  quantity: min_quantity,
-                  tradeTime,
-                },
-              }
-              ws.send(JSON.stringify(data_to_return))
-            }
-          } else if (typeof sides === 'string') {
-            for (const type of types) {
-              const tradeTime = await calcTradeTime(token, type, sides, product_id, min_quantity)
-              const data_to_return = {
-                type: 'trade',
-                data: {
-                  type: types, // EX. -> 'FOK'
-                  side: sides, // EX. -> 'BUY'
-                  product_id,
-                  product_name,
-                  quantity: min_quantity,
-                  tradeTime,
-                },
-              }
-              ws.send(JSON.stringify(data_to_return))
-            }
-          } else {
-            for (const type of types) {
-              for (const side of sides) {
-                const tradeTime = await calcTradeTime(token, type, side, product_id, min_quantity)
+              for (const quantity of quantities) {
+                const tradeTime = await calcTradeTime(token, type, side, product_id, quantity)
                 const data_to_return = {
                   type: 'trade',
                   data: {
@@ -137,8 +56,9 @@ const tradesController = async (ws, token, products, filters) => {
                     side, // EX. -> 'BUY'
                     product_id,
                     product_name,
-                    quantity: min_quantity,
+                    quantity,
                     tradeTime,
+                    id: uuidv4(),
                   },
                 }
                 parentPort.postMessage(JSON.stringify(data_to_return))
@@ -157,13 +77,13 @@ const tradesController = async (ws, token, products, filters) => {
 }
 
 parentPort.on('message', async (data) => {
-  const { ws, token, products, filters, type } = JSON.parse(data)
+  const { token, products, filters, type } = JSON.parse(data)
   if (type === 'stress') {
     while (true) {
-      await tradesController(ws, token, products, filters)
+      await tradesController(token, products, filters)
     }
   } else {
-    await tradesController(ws, token, products, filters)
+    await tradesController(token, products, filters)
   }
 })
 module.exports = {
