@@ -13,7 +13,7 @@ const ws_connection = async () => {
         message_helper.handle_message(ws, message)
       })
       ws.on('close', () => {
-        console.log('message closed')
+        console.log('connection closed')
       })
     })
 

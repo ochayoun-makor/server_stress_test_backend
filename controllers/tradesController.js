@@ -4,24 +4,32 @@ const { v4: uuidv4 } = require('uuid')
 
 const tradesController = async (token, products, filters) => {
   try {
-    const types = filters?.types ? filters.types : ['MKT', 'FOK', 'RFQ']
-    const sides = filters?.sides ? filters.sides : ['BUY', 'SELL']
+    let types = ['MKT', 'FOK', 'RFQ']
+    let sides = ['BUY', 'SELL']
+
+    if (filters && Object.entries(filters).length) {
+      if (filters.types && filters.types.length) {
+        types = filters.types
+      }
+      if (filters.sides && filters.sides.length) {
+        sides = filters.sides
+      }
+    }
 
     try {
-      if (filters?.products) {
-        s
+      if (filters?.products?.length) {
         let filteredProduct = products.filter((product) => filters.products.includes(product.product_name))
         const { product_id, min_quantity, max_quantity, product_name } = filteredProduct
 
         const separator = (max_quantity - min_quantity) / 5.0
         // creating array of quantities between max and min
         const quantities = [min_quantity, separator + min_quantity, separator * 2 + min_quantity, separator * 3 + min_quantity, max_quantity]
-
-        console.log('trade created ! :)')
+        console.log('trade created :)')
         for (const type of types) {
           for (const side of sides) {
             for (const quantity of quantities) {
-              const tradeTime = await calcTradeTime(token, type, side, product_id, quantity)
+              let result = await calcTradeTime(token, type, side, product_id, quantity)
+              let tradeTime = result.slice(0, 5)
               const data_to_return = {
                 type: 'trade',
                 data: {
@@ -40,15 +48,17 @@ const tradesController = async (token, products, filters) => {
         }
       } else {
         for (const product of products) {
-          console.log('trade created ! :)')
           const { product_id, min_quantity, max_quantity, product_name } = product
-          const separator = (max_quantity - min_quantity) / 5.0
+          const separator = +((max_quantity - min_quantity) / 5.0).toFixed(2)
           // creating array of quantities between max and min
           const quantities = [min_quantity, separator + min_quantity, separator * 2 + min_quantity, separator * 3 + min_quantity, max_quantity]
+          console.log('trade created :)')
+
           for (const type of types) {
             for (const side of sides) {
               for (const quantity of quantities) {
-                const tradeTime = await calcTradeTime(token, type, side, product_id, quantity)
+                let result = await calcTradeTime(token, type, side, product_id, quantity)
+                let tradeTime = result.slice(0, 5)
                 const data_to_return = {
                   type: 'trade',
                   data: {

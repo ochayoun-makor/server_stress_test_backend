@@ -20,7 +20,7 @@ resultTime=$(curl -o /dev/null -s -w %{time_total} --location --request POST 'ht
 echo $resultTime
 elif [ $type = "FOK" ]
 then
-quote=$(curl -s --location --request POST 'https://sb20.rest-api.enigma-securities.io/quote' \
+{ time quote=$(curl -s --location --request POST 'https://sb20.rest-api.enigma-securities.io/quote' \
             --header "Authorization: Bearer $token" \
             --form "side=$side" \
             --form "product_id=$product_id" \
@@ -28,16 +28,17 @@ quote=$(curl -s --location --request POST 'https://sb20.rest-api.enigma-securiti
 
           price=$(echo $quote | jq -r ".price")
           
-FOKTime=$(curl -o /dev/null -s -w %{time_total} --location --request POST 'https://sb20.rest-api.enigma-securities.io/trade' \
+result=$(curl -s --location --request POST 'https://sb20.rest-api.enigma-securities.io/trade' \
            --header "Authorization: Bearer $token" \
            --form "type=$type" \
            --form "side=$side" \
            --form "product_id=$product_id" \
            --form "quantity=$quantity" \
-           --form "price=$price")
+           --form "price=$price");} 2> FOK.txt
+            FOKTime=$(cat FOK.txt)
             echo $FOKTime
 else
- quote=$(curl -s --location --request POST 'https://sb20.rest-api.enigma-securities.io/quote' \
+{ time quote=$(curl -s --location --request POST 'https://sb20.rest-api.enigma-securities.io/quote' \
             --header "Authorization: Bearer $token" \
             --form "side=$side" \
             --form "product_id=$product_id" \
@@ -46,14 +47,15 @@ else
           quote_id=$(echo $quote | jq -r ".quote_id")
 
 
-       RFQTime=$(curl -o /dev/null -s -w %{time_total} POST 'https://sb20.rest-api.enigma-securities.io/trade' \
+       result=$(curl -s --location --request POST 'https://sb20.rest-api.enigma-securities.io/trade' \
             --header "Authorization: Bearer $token" \
             --form "type=$type" \
             --form "side=$side" \
             --form "product_id=$product_id" \
             --form "quantity=$quantity" \
             --form "price=$price" \
-            --form "quote_id=$quote_id")
+            --form "quote_id=$quote_id");} 2> RFQ.txt
+            RFQTime=$(cat RFQ.txt)
             echo $RFQTime 
 fi
 
