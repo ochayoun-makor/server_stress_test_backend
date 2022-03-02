@@ -47,7 +47,7 @@ else
           quote_id=$(echo $quote | jq -r ".quote_id")
 
 
-result=$(curl -o /dev/null -s -w %{time_total} POST 'https://sb20.rest-api.enigma-securities.io/trade' \
+result=$(curl -s --location --request POST 'https://sb20.rest-api.enigma-securities.io/trade' \
             --header "Authorization: Bearer $token" \
             --form "type=$type" \
             --form "side=$side" \
