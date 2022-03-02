@@ -1,14 +1,16 @@
 const WebSocket = require('ws')
 require('dotenv').config()
 const message_helper = require('../helpers/message_helper')
-//const logger = Logger.create('src/services/ws_service.js')
+const { v4: uuidv4 } = require('uuid')
 const wss = new WebSocket.Server({ port: process.env.WS_PORT })
+
 const get_wss_of_ws_service = () => wss
 const ws_connection = async () => {
   try {
     console.log(`Creating WS server on port ${process.env.WS_PORT}`)
     wss.on('connection', async (ws, req) => {
-      console.log('1 connected')
+      console.log('connected')
+      ws.id = uuidv4()
       ws.on('message', (message) => {
         message_helper.handle_message(ws, message)
       })

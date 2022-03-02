@@ -11,33 +11,34 @@ quantity=$5
 
 if [ $type = "MKT" ]
 then
-resultTime=$(curl -o /dev/null -s -w %{time_total} --location --request POST 'https://sb20.rest-api.enigma-securities.io/trade' \
+MKTTime=`{ time result=$(curl -s --location --request POST 'https://sb20.rest-api.enigma-securities.io/trade' \
                --header "Authorization: Bearer $token" \
                --form "type=$type" \
                --form "side=$side" \
                --form "product_id=$product_id" \
-               --form "quantity=$quantity")
-echo $resultTime
+               --form "quantity=$quantity");} 2>&1`
+echo $MKTTime
 elif [ $type = "FOK" ]
 then
-quote=$(curl -s --location --request POST 'https://sb20.rest-api.enigma-securities.io/quote' \
+FOKTime=`{ time quote=$(curl -s --location --request POST 'https://sb20.rest-api.enigma-securities.io/quote' \
             --header "Authorization: Bearer $token" \
             --form "side=$side" \
             --form "product_id=$product_id" \
             --form "quantity=$quantity")
 
-          price=$(echo $quote | jq -r ".price")
+          price=$(echo $quote | jq -r ".price")\
           
-FOKTime=$(curl -o /dev/null -s -w %{time_total} --location --request POST 'https://sb20.rest-api.enigma-securities.io/trade' \
+          
+result=$(curl -s --location --request POST 'https://sb20.rest-api.enigma-securities.io/trade' \
            --header "Authorization: Bearer $token" \
            --form "type=$type" \
            --form "side=$side" \
            --form "product_id=$product_id" \
            --form "quantity=$quantity" \
-           --form "price=$price")
-            echo $FOKTime
+           --form "price=$price");} 2>&1`
+echo $FOKTime
 else
- quote=$(curl -s --location --request POST 'https://sb20.rest-api.enigma-securities.io/quote' \
+ RFQTime=`{ time quote=$(curl -s --location --request POST 'https://sb20.rest-api.enigma-securities.io/quote' \
             --header "Authorization: Bearer $token" \
             --form "side=$side" \
             --form "product_id=$product_id" \
@@ -46,14 +47,14 @@ else
           quote_id=$(echo $quote | jq -r ".quote_id")
 
 
-       RFQTime=$(curl -o /dev/null -s -w %{time_total} POST 'https://sb20.rest-api.enigma-securities.io/trade' \
+result=$(curl -o /dev/null -s -w %{time_total} POST 'https://sb20.rest-api.enigma-securities.io/trade' \
             --header "Authorization: Bearer $token" \
             --form "type=$type" \
             --form "side=$side" \
             --form "product_id=$product_id" \
             --form "quantity=$quantity" \
             --form "price=$price" \
-            --form "quote_id=$quote_id")
+            --form "quote_id=$quote_id");} 2>&1`
             echo $RFQTime 
 fi
 
