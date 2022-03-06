@@ -1,6 +1,7 @@
 const { calcTradeTime } = require('./singleTrade')
 const { parentPort } = require('worker_threads')
 const { v4: uuidv4 } = require('uuid')
+const res = require('express/lib/response')
 
 const tradesController = async (token, products, filters) => {
   try {
@@ -16,63 +17,33 @@ const tradesController = async (token, products, filters) => {
       }
     }
 
+    let productsToTrade = filters?.products ? products.filter((product) => filters.products.includes(product.product_name)) : products
+
     try {
-      if (filters?.products?.length) {
-        let filteredProducts = products.filter((product) => filters.products.includes(product.product_name))
-        for (const filteredProduct of filteredProducts) {
-          const { product_id, min_quantity, max_quantity, product_name } = filteredProduct
-          const separator = +((max_quantity - min_quantity) / 5.0).toFixed(2)
+      for (const product of productsToTrade) {
+        const { product_id, min_quantity, product_name } = product
+        let quantity = filters?.qty ? +filters.qty : min_quantity
 
-          const quantities = [min_quantity, separator + min_quantity, separator * 2 + min_quantity, separator * 3 + min_quantity, max_quantity]
+        for (const type of types) {
+          for (const side of sides) {
+            const tradeResult = await calcTradeTime(token, type, side, product_id, +quantity)
 
-          for (const type of types) {
-            for (const side of sides) {
-              for (const quantity of quantities) {
-                let tradeTime = await calcTradeTime(token, type, side, product_id, quantity)
-                const data_to_return = {
-                  type: 'trade',
-                  data: {
-                    type, // EX. -> 'FOK'
-                    side, // EX. -> 'BUY'
-                    product_id,
-                    product_name,
-                    quantity,
-                    tradeTime,
-                    id: uuidv4(),
-                  },
-                }
-                parentPort.postMessage(JSON.stringify(data_to_return))
-              }
+            let status = tradeResult.data.result ? 200 : 400
+            const data_to_return = {
+              type: 'trade',
+              data: {
+                type, // EX. -> 'FOK'
+                side, // EX. -> 'BUY'
+                product_id,
+                product_name,
+                quantity,
+                tradeTime: tradeResult.time,
+                status,
+                response: tradeResult.data,
+                id: uuidv4(),
+              },
             }
-          }
-        }
-      } else {
-        for (const product of products) {
-          const { product_id, min_quantity, max_quantity, product_name } = product
-          const separator = +((max_quantity - min_quantity) / 5.0).toFixed(2)
-          // creating array of quantities between max and min
-          const quantities = [min_quantity, separator + min_quantity, separator * 2 + min_quantity, separator * 3 + min_quantity, max_quantity]
-
-          for (const type of types) {
-            for (const side of sides) {
-              for (const quantity of quantities) {
-                const tradeTime = await calcTradeTime(token, type, side, product_id, quantity)
-
-                const data_to_return = {
-                  type: 'trade',
-                  data: {
-                    type, // EX. -> 'FOK'
-                    side, // EX. -> 'BUY'
-                    product_id,
-                    product_name,
-                    quantity,
-                    tradeTime,
-                    id: uuidv4(),
-                  },
-                }
-                parentPort.postMessage(JSON.stringify(data_to_return))
-              }
-            }
+            parentPort.postMessage(JSON.stringify(data_to_return))
           }
         }
       }
@@ -93,15 +64,19 @@ const singleTrade = async (token, products, filters) => {
   const random_side = sides[Math.floor(Math.random() * sides.length)]
   const random_product = products_names[Math.floor(Math.random() * products_names.length)]
   const product = products.filter((product) => product.product_name === random_product)[0]
-  const quantity = product.min_quantity
+  const quantity = filters?.qty ? +filters.qty : +product.min_quantity
 
-  const tradeTime = await calcTradeTime(token, random_type, random_side, product.product_id, quantity)
+  const tradeResult = await calcTradeTime(token, random_type, random_side, product.product_id, quantity)
+  let status = tradeResult.data.result ? 200 : 400
+
   const data = {
     type: 'trade',
     data: {
       type: random_type, // EX. -> 'FOK'
       side: random_side, // EX. -> 'BUY'
-      tradeTime,
+      tradeTime: tradeResult.time,
+      status,
+      response: tradeResult.data,
       product_id: product.product_id,
       product_name: random_product,
       quantity,

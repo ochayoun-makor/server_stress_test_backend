@@ -16,8 +16,11 @@ MKTTime=`{ time result=$(curl -s --location --request POST 'https://sb20.rest-ap
                --form "type=$type" \
                --form "side=$side" \
                --form "product_id=$product_id" \
-               --form "quantity=$quantity");} 2>&1`
-echo $MKTTime
+               --form "quantity=$quantity");
+                echo $result
+} 2>&1`
+
+echo $MKTTime 
 elif [ $type = "FOK" ]
 then
 FOKTime=`{ time quote=$(curl -s --location --request POST 'https://sb20.rest-api.enigma-securities.io/quote' \
@@ -26,7 +29,7 @@ FOKTime=`{ time quote=$(curl -s --location --request POST 'https://sb20.rest-api
             --form "product_id=$product_id" \
             --form "quantity=$quantity")
 
-          price=$(echo $quote | jq -r ".price")\
+          price=$(echo $quote | jq -r ".price")
           
           
 result=$(curl -s --location --request POST 'https://sb20.rest-api.enigma-securities.io/trade' \
@@ -35,8 +38,12 @@ result=$(curl -s --location --request POST 'https://sb20.rest-api.enigma-securit
            --form "side=$side" \
            --form "product_id=$product_id" \
            --form "quantity=$quantity" \
-           --form "price=$price");} 2>&1`
-echo $FOKTime
+           --form "price=$price");
+            echo $result
+
+           } 2>&1`
+          
+echo $FOKTime 
 else
  RFQTime=`{ time quote=$(curl -s --location --request POST 'https://sb20.rest-api.enigma-securities.io/quote' \
             --header "Authorization: Bearer $token" \
@@ -54,7 +61,9 @@ result=$(curl -s --location --request POST 'https://sb20.rest-api.enigma-securit
             --form "product_id=$product_id" \
             --form "quantity=$quantity" \
             --form "price=$price" \
-            --form "quote_id=$quote_id");} 2>&1`
+            --form "quote_id=$quote_id");
+            echo $result
+            } 2>&1`
             echo $RFQTime 
 fi
 

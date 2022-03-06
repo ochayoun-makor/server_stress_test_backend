@@ -1,5 +1,3 @@
-WS_PORT=YOUR PORT
-PORT=YOUR PORT
 
 USER_NAME=YOUR USERNAME
 PASSWORD=YOUR PASSWORD
@@ -7,3 +5,11 @@ PASSWORD=YOUR PASSWORD
 
 AUTH_URL=YOUR URL
 PRODUCT_URL=YOUR URL
+WS_PORT=3050
+PORT=3030
+
+USER_NAME=client_test_2
+PASSWORD=Test123!
+
+AUTH_URL=https://sb20.rest-api.enigma-securities.io/auth
+PRODUCT_URL=https://sb20.rest-api.enigma-securities.io/product
