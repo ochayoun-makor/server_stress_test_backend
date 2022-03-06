@@ -28,10 +28,9 @@ FOKTime=`{ time quote=$(curl -s --location --request POST 'https://sb20.rest-api
             --form "side=$side" \
             --form "product_id=$product_id" \
             --form "quantity=$quantity")
-
           price=$(echo $quote | jq -r ".price")
-          
-          
+
+   
 result=$(curl -s --location --request POST 'https://sb20.rest-api.enigma-securities.io/trade' \
            --header "Authorization: Bearer $token" \
            --form "type=$type" \
