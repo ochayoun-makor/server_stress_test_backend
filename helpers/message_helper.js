@@ -9,7 +9,6 @@ const handle_message = async (ws, message) => {
       username: process.env.USER_NAME,
       password: process.env.PASSWORD,
     }
-    // Check the time and insert it to the object
     const res = await axios.put(process.env.AUTH_URL, login_data)
     const { key: token } = res.data
 
@@ -22,7 +21,7 @@ const handle_message = async (ws, message) => {
     const { data: products } = productsRes
     const req = JSON.parse(message)
     switch (req.type) {
-      case 'get_data': // regular
+      case 'get_data':
         switch (req.mode) {
           case 'regular':
             if (req.power === true) {
@@ -96,12 +95,3 @@ const handle_message = async (ws, message) => {
 module.exports = {
   handle_message,
 }
-
-// {
-//   type: "getData",
-//   filters: {
-//     type: 'MKT',
-//     side: "BUY",
-//     product_id: 2
-//   }
-// }

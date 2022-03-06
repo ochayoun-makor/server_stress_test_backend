@@ -1,7 +1,6 @@
 const { calcTradeTime } = require('./singleTrade')
 const { parentPort } = require('worker_threads')
 const { v4: uuidv4 } = require('uuid')
-const res = require('express/lib/response')
 
 const tradesController = async (token, products, filters) => {
   try {
@@ -48,6 +47,7 @@ const tradesController = async (token, products, filters) => {
         }
       }
     } catch (error) {
+      //! handle errors !!!!!
       console.log(error.message)
       throw new Error('data not found')
     }
